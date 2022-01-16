@@ -50,6 +50,7 @@ for year in years:
             browser.get(podcast)
             date = format(datetime.strptime(browser.find_element(By.CLASS_NAME, 'cover-emission-period').text, '%A %d %B %Y'), "%Y-%m-%d")
             titre = browser.find_element(By.CLASS_NAME, 'cover-emission-actions-title').text.replace("/", "")
+            titre = re.sub(r'[\\/*?:"<>|]', "", titre)
             url_dl = browser.find_element(By.CLASS_NAME, 'replay-button').get_attribute('data-url')
             if url_dl is None:
                 fail += [date]
