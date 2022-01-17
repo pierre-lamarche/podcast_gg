@@ -14,6 +14,8 @@ import locale
 import requests
 import os
 import json
+import mutagen
+from mutagen.easyid3 import EasyID3
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
@@ -59,8 +61,8 @@ for year in years:
         browser.get(f"{url_base}/archives-{year}?p={page}")
         liste_podcasts = [element.get_attribute('href') for element in browser.find_elements(By.CLASS_NAME, 'card-text-sub')]
         
-        for podcast in liste_podcasts:
-            browser.get(podcast)
+        for cast in liste_podcasts:
+            browser.get(cast)
             date = format(datetime.strptime(browser.find_element(By.CLASS_NAME, 'cover-emission-period').text, '%A %d %B %Y'), "%Y-%m-%d")
             titre = browser.find_element(By.CLASS_NAME, 'cover-emission-actions-title').text.replace("/", "")
             titre = re.sub(r'[\\/*?:"<>|]', "", titre)
@@ -69,8 +71,23 @@ for year in years:
                 fail += [date]
             else:
                 r = requests.get(url_dl)
-                with open(f"/home/pierre/Musique/{album}/{year}/{date} - {titre}.mp3", "wb") as f:
+                fileName = f"/home/pierre/Musique/{album}/{year}/{date} - {titre}.mp3"
+                with open(fileName, "wb") as f:
                     f.write(r.content)
+                # handle tags properly
+                try:
+                    meta = EasyID3(fileName)
+                except mutagen.id3.ID3NoHeaderError:
+                    meta = mutagen.File(fileName, easy=True)
+                    meta.add_tags()
+                meta['title'] = titre
+                meta['album'] = album
+                meta['artist'] = podcast['artist']
+                meta['date'] = date
+                meta['copyright'] = 'Radio France'
+                meta['genre'] = 'Podcast'
+                meta['website'] = url_dl
+                meta.save(fileName, v1=2)
 
 browser.close()
         
