@@ -13,27 +13,40 @@ from datetime import datetime
 import locale
 import requests
 import os
+import json
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
-years = [str(i) for i in range(2016, 2023)]
+with open("urls.json", 'r') as f:
+    podcasts = json.load(f)
+    
+podcast = podcasts[0]
+    
+url_base = "https://www.franceinter.fr/emissions/"+podcast['url']
 browser = webdriver.Firefox()
+browser.get(url_base)
 
-url_base = "https://www.franceinter.fr/emissions/la-drole-d-humeur-de-guillermo-guiz"
+# accept RGPD
+if browser.find_elements(By.ID, 'didomi-notice-agree-button'):
+        button_consent = browser.find_element(By.ID, 'didomi-notice-agree-button')
+        button_consent.click()
+        
+# get title
+album = browser.find_element(By.CLASS_NAME, 'cover-emission-title').text.lower().title()
+
+button_archives = browser.find_element(By.CLASS_NAME, 'season-link-container-link')
+button_archives.click()
+
+years = [element.text for element in browser.find_elements(By.CLASS_NAME, 'season-cover-list-element')]
 fail = []
 
-if not os.path.exists("/home/pierre/Musique/La Drôle D'Humeur De Guillermo Guiz"):
-    os.mkdir("/home/pierre/Musique/La Drôle D'Humeur De Guillermo Guiz")
+if not os.path.exists("/home/pierre/Musique/{album}"):
+    os.mkdir("/home/pierre/Musique/{album}")
 
 for year in years:
-    if not os.path.exists(f"/home/pierre/Musique/La Drôle D'Humeur De Guillermo Guiz/{year}"):
-        os.mkdir(f"/home/pierre/Musique/La Drôle D'Humeur De Guillermo Guiz/{year}")
+    if not os.path.exists(f"/home/pierre/Musique/{album}/{year}"):
+        os.mkdir(f"/home/pierre/Musique/{album}/{year}")
     browser.get(f"{url_base}/archives-{year}")
-    
-    # accept RGPD
-    if browser.find_elements(By.ID, 'didomi-notice-agree-button'):
-            button_consent = browser.find_element(By.ID, 'didomi-notice-agree-button')
-            button_consent.click()
             
     # récupérer le nombre de pages
     if browser.find_elements(By.CSS_SELECTOR, '.pager-item.last [href]'):
@@ -56,11 +69,8 @@ for year in years:
                 fail += [date]
             else:
                 r = requests.get(url_dl)
-                with open(f"/home/pierre/Musique/La Drôle D'Humeur De Guillermo Guiz/{year}/{date} - {titre}.mp3", "wb") as f:
+                with open(f"/home/pierre/Musique/{album}/{year}/{date} - {titre}.mp3", "wb") as f:
                     f.write(r.content)
 
 browser.close()
-            
-            
-            
         
