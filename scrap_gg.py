@@ -18,6 +18,7 @@ import json
 import mutagen
 from mutagen.easyid3 import EasyID3
 import argparse
+import time
 
 locale.setlocale(locale.LC_ALL, 'fr_FR.utf8')
 
@@ -58,10 +59,12 @@ if __name__ == '__main__':
         
         if not os.path.exists(f"{folder}/{album}"):
             os.mkdir(f"{folder}/{album}")
+        time.sleep(2)
         
         for year in years:
             if not os.path.exists(f"{folder}/{album}/{year}"):
                 os.mkdir(f"{folder}/{album}/{year}")
+                time.sleep(2)
             browser.get(f"{url_base}/archives-{year}")
                     
             # récupérer le nombre de pages
