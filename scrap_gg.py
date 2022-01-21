@@ -8,6 +8,7 @@ Created on Fri Jan 14 23:42:58 2022
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from pyvirtualdisplay import Display
 import re
 from datetime import datetime
 import locale
@@ -34,6 +35,10 @@ if __name__ == '__main__':
         
     for podcast in podcasts:        
         url_base = "https://www.franceinter.fr/emissions/"+podcast['url']
+        
+        display = Display(visible=0, size=(1024, 768))
+        display.start()
+        
         browser = webdriver.Firefox()
         browser.get(url_base)
         
@@ -79,6 +84,7 @@ if __name__ == '__main__':
                     if url_dl is None:
                         fail += [date]
                     else:
+                        print(f"Écriture du fichier {folder}/{album}/{year}/{date} - {titre_standardise}.mp3")
                         r = requests.get(url_dl)
                         fileName = f"{folder}/{album}/{year}/{date} - {titre_standardise}.mp3"
                         with open(fileName, "wb") as f:
@@ -99,4 +105,5 @@ if __name__ == '__main__':
                         meta.save(fileName, v1=2)
         
         browser.close()
+        display.stop()
             
