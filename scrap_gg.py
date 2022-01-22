@@ -28,6 +28,7 @@ if __name__ == '__main__':
                         default="urls.json")
     parser.add_argument("-o", "--output", help="Defines the name of the output folder", dest='folder',
                         default=".")
+    parser.add_argument("-v", "--visible", action="store_true", help="Makes the browser visible")
     args = parser.parse_args()
     folder = args.folder
     
@@ -37,8 +38,9 @@ if __name__ == '__main__':
     for podcast in podcasts:        
         url_base = "https://www.franceinter.fr/emissions/"+podcast['url']
         
-        display = Display(visible=0, size=(1024, 768))
-        display.start()
+        if not args.visible:
+            display = Display(visible=0, size=(1024, 768))
+            display.start()
         
         browser = webdriver.Firefox()
         browser.get(url_base)
@@ -108,5 +110,6 @@ if __name__ == '__main__':
                         meta.save(fileName, v1=2)
         
         browser.close()
-        display.stop()
+        if not args.visible:
+            display.stop()
             
